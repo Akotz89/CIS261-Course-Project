@@ -25,6 +25,13 @@ def calculate_pay(hours, rate, tax_rate):
 def display_employee_info(from_date, to_date, name, hours, rate, gross, tax_rate, tax, net):
     print(f"\nFrom Date: {from_date}\nTo Date: {to_date}\nEmployee: {name}\nHours: {hours}\nRate: ${rate:.2f}\nGross: ${gross:.2f}\nTax Rate: {tax_rate*100:.1f}%\nTax: ${tax:.2f}\nNet: ${net:.2f}\n")
 
+def display_summary(totals):
+    print(f"Summary:\nCount: {totals['count']}\nHours: {totals['sum_hours']}\nGross: ${totals['sum_gross']:.2f}\nTax: ${totals['sum_tax']:.2f}\nNet: ${totals['sum_net']:.2f}")
+
+def append_employee_data_to_file(file_name, employee_data):
+    with open(file_name, 'a') as file:
+        file.write("|".join(map(str, employee_data)) + "\n")
+
 def process_employee_data(employee_data):
     totals = {
         'count': 0,
@@ -47,10 +54,32 @@ def process_employee_data(employee_data):
 
     return totals
 
-def display_summary(totals):
-    print(f"Summary:\nCount: {totals['count']}\nHours: {totals['sum_hours']}\nGross: ${totals['sum_gross']:.2f}\nTax: ${totals['sum_tax']:.2f}\nNet: ${totals['sum_net']:.2f}")
+def read_employee_data_from_file(file_name, report_from_date):
+    with open(file_name, 'r') as file:
+        lines = file.readlines()
+
+    employee_data = []
+    for line in lines:
+        data = line.strip().split("|")
+        from_date, to_date = data[0], data[1]
+        if report_from_date.lower() == "all" or from_date == report_from_date:
+            employee_data.append((from_date, to_date, data[2], float(data[3]), float(data[4]), float(data[5])))
+
+    return employee_data
+
+def get_report_from_date():
+    while True:
+        report_from_date = input("Enter From Date for report (mm/dd/yyyy) or 'All' for all records: ")
+        if report_from_date.lower() == "all":
+            return report_from_date
+        try:
+            datetime.strptime(report_from_date, "%m/%d/%Y")
+            return report_from_date
+        except ValueError:
+            print("Invalid date format. Please enter the date in mm/dd/yyyy format.")
 
 def main():
+    file_name = 'employee_data.txt'
     employee_data = []
 
     while input("Type 'End' to exit or press Enter to continue: ").lower() != 'end':
@@ -61,10 +90,14 @@ def main():
         tax_rate = input_tax_rate()
 
         employee_data.append((from_date, to_date, name, hours, rate, tax_rate))
+        append_employee_data_to_file(file_name, (from_date, to_date, name, hours, rate, tax_rate))
 
     if employee_data:
-        totals = process_employee_data(employee_data)
+        report_from_date = get_report_from_date()
+        stored_employee_data = read_employee_data_from_file(file_name, report_from_date)
+        totals = process_employee_data(stored_employee_data)
         display_summary(totals)
 
 if __name__ == "__main__":
     main()
+
