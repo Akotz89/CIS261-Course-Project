@@ -192,7 +192,7 @@ def add_user(file_name):
 def display_users(file_name):
     users = User.load_users(file_name)
     for user in users:
-        print(f"User ID: {user.user_id}, Password: {user.password}, Authorization: {user.role}")
+        print(f"User ID: {user.user_id}, Password: {'*' * 8}, Authorization: {user.role}")
 
 def admin_actions(employee_file):
     while True:
